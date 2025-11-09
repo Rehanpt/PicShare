@@ -1,0 +1,37 @@
+[
+    {
+        "url": "http://127.0.0.1:8000/uploads/20251109214040_Photo5.jpg",
+        "caption": "buildings",
+        "created_at": "2025-11-09 21:40:40"
+    },
+    {
+        "url": "http://127.0.0.1:8000/uploads/20251109214124_Photo2.jpg",
+        "caption": "buildings",
+        "created_at": "2025-11-09 21:41:24"
+    },
+    {
+        "url": "http://127.0.0.1:8000/uploads/20251109214754_photo3.jpg",
+        "caption": "nature",
+        "created_at": "2025-11-09 21:47:54"
+    },
+    {
+        "url": "http://127.0.0.1:8000/uploads/20251109214858_Photo2.jpg",
+        "caption": "beautifull",
+        "created_at": "2025-11-09 21:48:58"
+    },
+    {
+        "url": "http://127.0.0.1:8000/uploads/20251109215309_Photo4.jpg",
+        "caption": "buildings",
+        "created_at": "2025-11-09 21:53:09"
+    },
+    {
+        "url": "http://127.0.0.1:8000/uploads/20251109220450_Photo1.jpg",
+        "caption": "hi",
+        "created_at": "2025-11-09 22:04:50"
+    },
+    {
+        "url": "http://127.0.0.1:8000/uploads/20251109220545_Photo2.jpg",
+        "caption": "hlo",
+        "created_at": "2025-11-09 22:05:45"
+    }
+]
