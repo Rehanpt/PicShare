@@ -47,5 +47,5 @@ async def upload(file: UploadFile, caption: str = Form("")):
 @app.get("/feed")
 def get_feed():
     # Return newest posts first
-    sorted_posts = sorted(posts, key=lambda p: p["created_at"], reverse=True)
-    return {"posts": sorted_posts}
+    return {"posts": list(reversed(posts))}
+
