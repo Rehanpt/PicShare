@@ -1,19 +1,11 @@
 from fastapi import FastAPI, UploadFile, Form
-import cloudinary
-import cloudinary.uploader
-import json, os
+import requests, json, base64, os
 from datetime import datetime
 
 app = FastAPI()
 
+IMGBB_API_KEY = "c494877385cd302688b66d5810974b90"  # 👈 replace this with your key
 DATA_FILE = "data.json"
-
-# Configure Cloudinary
-cloudinary.config(
-    cloud_name="YOUR_CLOUD_NAME",
-    api_key="YOUR_API_KEY",
-    api_secret="YOUR_API_SECRET"
-)
 
 # Load existing posts
 if os.path.exists(DATA_FILE):
@@ -22,18 +14,29 @@ if os.path.exists(DATA_FILE):
 else:
     posts = []
 
+
 @app.post("/upload")
 async def upload(file: UploadFile, caption: str = Form("")):
-    # Upload image directly to Cloudinary
-    result = cloudinary.uploader.upload(file.file)
+    # Convert image to base64
+    image_data = base64.b64encode(await file.read()).decode("utf-8")
 
+    # Upload to ImgBB
+    upload_url = f"https://api.imgbb.com/1/upload?key={IMGBB_API_KEY}"
+    response = requests.post(upload_url, data={"image": image_data})
+
+    if response.status_code == 200:
+        image_url = response.json()["data"]["url"]
+    else:
+        return {"error": "Failed to upload image to ImgBB"}
+
+    # Save post data
     post = {
-        "url": result["secure_url"],  # Cloudinary image URL
+        "url": image_url,
         "caption": caption,
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
 
-    # Save to JSON
+    # Append post to the list and save
     posts.append(post)
     with open(DATA_FILE, "w") as f:
         json.dump(posts, f, indent=4)
@@ -43,4 +46,6 @@ async def upload(file: UploadFile, caption: str = Form("")):
 
 @app.get("/feed")
 def get_feed():
-    return {"posts": posts}
+    # Return newest posts first
+    sorted_posts = sorted(posts, key=lambda p: p["created_at"], reverse=True)
+    return {"posts": sorted_posts}
