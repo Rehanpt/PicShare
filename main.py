@@ -1,22 +1,31 @@
 from fastapi import FastAPI, UploadFile, Form
-import requests, json, base64, os
+from supabase import create_client, Client
+import base64
+import requests
 from datetime import datetime
+import os
 
 app = FastAPI()
 
-IMGBB_API_KEY = "c494877385cd302688b66d5810974b90"  # 👈 replace this with your key
-DATA_FILE = "data.json"
+# ----------------------------
+# IMG-BB API
+# ----------------------------
+IMGBB_API_KEY = "c494877385cd302688b66d5810974b90"
 
-# Load existing posts
-if os.path.exists(DATA_FILE):
-    with open(DATA_FILE, "r") as f:
-        posts = json.load(f)
-else:
-    posts = []
+# ----------------------------
+# SUPABASE CONFIG
+# ----------------------------
+SUPABASE_URL = "https://wzvjwqdnzgrwefpeimyw.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6dmp3cWRuemdyd2VmcGVpbXl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyMDIzMTksImV4cCI6MjA3ODc3ODMxOX0.xxjyj9UbVgb7Alwn9CU3Dsn1rXT8Zt6eeKsOaHzBe6Y"
 
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+# ----------------------------
+# UPLOAD IMAGE ROUTE
+# ----------------------------
 @app.post("/upload")
 async def upload(file: UploadFile, caption: str = Form("")):
+
     # Convert image to base64
     image_data = base64.b64encode(await file.read()).decode("utf-8")
 
@@ -24,28 +33,29 @@ async def upload(file: UploadFile, caption: str = Form("")):
     upload_url = f"https://api.imgbb.com/1/upload?key={IMGBB_API_KEY}"
     response = requests.post(upload_url, data={"image": image_data})
 
-    if response.status_code == 200:
-        image_url = response.json()["data"]["url"]
-    else:
-        return {"error": "Failed to upload image to ImgBB"}
+    if response.status_code != 200:
+        return {"error": "Failed to upload image"}
 
-    # Save post data
-    post = {
+    image_url = response.json()["data"]["url"]
+
+    # Save to Supabase database
+    post_data = {
         "url": image_url,
         "caption": caption,
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
 
-    # Append post to the list and save
-    posts.append(post)
-    with open(DATA_FILE, "w") as f:
-        json.dump(posts, f, indent=4)
+    result = supabase.table("posts").insert(post_data).execute()
 
-    return {"message": "Uploaded successfully!", "post": post}
+    return {
+        "message": "Uploaded successfully!",
+        "post": post_data
+    }
 
-
+# ----------------------------
+# FEED ROUTE
+# ----------------------------
 @app.get("/feed")
 def get_feed():
-    # Return newest posts first
-    return {"posts": list(reversed(posts))}
-
+    result = supabase.table("posts").select("*").order("created_at", desc=True).execute()
+    posts = result.data
+    return {"posts": posts}
