@@ -46,6 +46,8 @@ async def upload(file: UploadFile, caption: str = Form("")):
 
     result = supabase.table("posts").insert(post_data).execute()
 
+    print("SUPABASE RESULT:", result)
+
     return {
         "message": "Uploaded successfully!",
         "post": post_data
