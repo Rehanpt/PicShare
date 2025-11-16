@@ -42,6 +42,7 @@ async def upload(file: UploadFile, caption: str = Form("")):
     post_data = {
         "url": image_url,
         "caption": caption,
+        "created_at": datetime.utcnow().isoformat()
     }
 
     result = supabase.table("posts").insert(post_data).execute()
